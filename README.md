@@ -1,4 +1,5 @@
 # Sudarshan
+Real-time hospital emergency management system built with Node.js and MongoDB.
 A web-based emergency management system that helps users quickly locate nearby hospitals, check availability, and manage emergency response efficiently.
 
 Sanjeevini is designed to:

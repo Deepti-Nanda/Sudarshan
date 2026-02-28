@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sanjeevni — Emergency Hospital Finder</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --crimson: #C8102E; --crimson-dark: #a00d24;
+      --crimson-dim: rgba(200,16,46,0.08); --crimson-line: rgba(200,16,46,0.28);
+      --bg: #06070C; --panel: #0E1018; --panel2: #13161F; --panel3: #191D28;
+      --stroke: rgba(255,255,255,0.06); --stroke2: rgba(255,255,255,0.11);
+      --text: #E6E9F4; --text2: #7C8099; --text3: #454A60;
+      --green: #0EA472; --green-dim: rgba(14,164,114,0.08); --green-line: rgba(14,164,114,0.25);
+      --amber: #D97706; --amber-dim: rgba(217,119,6,0.08); --amber-line: rgba(217,119,6,0.28);
+    }
+    /* light theme overrides */
+    [data-theme="light"] {
+      --bg: #F4F5F8;
+      --panel: #FFFFFF;
+      --panel2: #F0F1F5;
+      --panel3: #E8E9EF;
+      --text: #0D0F1A;
+      --text2: #4A4F66;
+      --text3: #9A9FB5;
+      --stroke: rgba(0,0,0,0.08);
+      --stroke2: rgba(0,0,0,0.13);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse 60% 35% at 50% 0%, rgba(200,16,46,0.05), transparent 70%); }
+
+    /* HEADER */
+    .header { position: sticky; top: 0; z-index: 100; background: rgba(6,7,12,0.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--stroke); height: 56px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 6px; background: var(--crimson-dim); border: 1px solid var(--crimson-line); display: flex; align-items: center; justify-content: center; }
+    .brand-mark svg { width: 14px; height: 14px; color: var(--crimson); }
+    .brand-name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); }
+    .brand-name em { font-style: italic; color: var(--crimson); }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .live-badge { display: flex; align-items: center; gap: 6px; background: var(--crimson-dim); border: 1px solid var(--crimson-line); border-radius: 4px; padding: 4px 9px; font-size: 10px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--crimson); }
+    .live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--crimson); animation: blink 1.8s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+    .user-badge { display: flex; align-items: center; gap: 7px; background: var(--panel2); border: 1px solid var(--stroke2); border-radius: 5px; padding: 5px 10px; font-size: 12px; color: var(--text2); }
+    .user-badge svg { width: 12px; height: 12px; color: var(--text3); }
+    .btn-sm { padding: 6px 12px; border-radius: 5px; border: 1px solid var(--stroke2); background: transparent; color: var(--text2); font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-sm:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .btn-sm svg { width: 12px; height: 12px; }
+    .btn-sm-demo { background: var(--crimson-dim); border-color: var(--crimson-line); color: var(--crimson); }
+    .btn-sm-demo:hover { background: var(--crimson); color: #fff; border-color: var(--crimson); }
+
+    /* MAIN */
+    .main { position: relative; z-index: 1; max-width: 740px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    /* Hero */
+    .hero { margin-bottom: 40px; }
+    .hero-tag { display: inline-flex; align-items: center; gap: 7px; background: var(--crimson-dim); border: 1px solid var(--crimson-line); border-radius: 4px; padding: 5px 10px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--crimson); margin-bottom: 16px; }
+    .hero-tag-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--crimson); animation: blink 1.8s ease-in-out infinite; }
+    .hero-title { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 4vw, 44px); line-height: 1.12; color: var(--text); margin-bottom: 12px; }
+    .hero-title em { font-style: italic; color: var(--crimson); }
+    .hero-sub { font-size: 14px; color: var(--text2); line-height: 1.7; max-width: 520px; }
+
+    /* Form card */
+    .form-card { background: var(--panel); border: 1px solid var(--stroke); border-radius: 12px; overflow: hidden; margin-bottom: 36px; }
+    .form-section { padding: 24px 26px; border-bottom: 1px solid var(--stroke); }
+    .form-section:last-child { border-bottom: none; }
+    .step-label { display: flex; align-items: center; gap: 10px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 16px; }
+    .step-num { width: 18px; height: 18px; border-radius: 50%; background: var(--panel3); border: 1px solid var(--stroke2); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text2); font-weight: 600; flex-shrink: 0; }
+
+    /* Emergency grid — SVG icons only, NO emojis */
+    .emergency-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .ec { padding: 14px 8px; background: var(--panel2); border: 1px solid var(--stroke); border-radius: 7px; cursor: pointer; text-align: center; transition: all 0.15s; user-select: none; display: flex; flex-direction: column; align-items: center; gap: 9px; }
+    .ec:hover { border-color: var(--stroke2); background: var(--panel3); }
+    .ec.active { border-color: var(--crimson-line); background: var(--crimson-dim); }
+    .ec-icon { width: 34px; height: 34px; border-radius: 7px; background: var(--panel3); border: 1px solid var(--stroke); display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .ec.active .ec-icon { background: var(--crimson-dim); border-color: var(--crimson-line); }
+    .ec-icon svg { width: 16px; height: 16px; color: var(--text3); transition: color 0.15s; }
+    .ec.active .ec-icon svg { color: var(--crimson); }
+    .ec-label { font-size: 11px; font-weight: 500; color: var(--text2); transition: color 0.15s; }
+    .ec.active .ec-label { color: var(--text); }
+
+    /* Severity */
+    .severity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .sev { padding: 13px 10px; background: var(--panel2); border: 1px solid var(--stroke); border-radius: 7px; cursor: pointer; text-align: center; transition: all 0.15s; user-select: none; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+    .sev:hover { border-color: var(--stroke2); }
+    .sev-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .sev[data-v="stable"]   .sev-dot { background: var(--green); }
+    .sev[data-v="moderate"] .sev-dot { background: var(--amber); }
+    .sev[data-v="critical"] .sev-dot { background: var(--crimson); }
+    .sev[data-v="stable"].active   { border-color: var(--green-line);  background: var(--green-dim); }
+    .sev[data-v="moderate"].active { border-color: var(--amber-line);  background: var(--amber-dim); }
+    .sev[data-v="critical"].active { border-color: var(--crimson-line); background: var(--crimson-dim); }
+    .sev-name { font-size: 12px; font-weight: 600; color: var(--text2); transition: color 0.15s; }
+    .sev[data-v="stable"].active   .sev-name { color: var(--green); }
+    .sev[data-v="moderate"].active .sev-name { color: var(--amber); }
+    .sev[data-v="critical"].active .sev-name { color: var(--crimson); }
+    .sev-desc { font-size: 10px; color: var(--text3); }
+
+    /* Location */
+    .loc-row { display: flex; gap: 8px; }
+    .loc-wrap { flex: 1; position: relative; }
+    .loc-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text3); pointer-events: none; }
+    .loc-input { width: 100%; padding: 11px 14px 11px 36px; background: var(--panel2); border: 1px solid var(--stroke); border-radius: 7px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s; }
+    .loc-input:focus { border-color: rgba(200,16,46,0.35); }
+    .loc-input::placeholder { color: var(--text3); }
+    .btn-gps { padding: 0 14px; border-radius: 7px; border: 1px solid var(--stroke2); background: var(--panel2); color: var(--text2); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; white-space: nowrap; min-height: 44px; }
+    .btn-gps:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .btn-gps svg { width: 13px; height: 13px; }
+
+    /* Find button */
+    .form-footer { padding: 18px 26px; }
+    .btn-find { width: 100%; padding: 14px; border-radius: 7px; border: none; background: var(--crimson); color: #fff; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 15px; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-find:hover { background: var(--crimson-dark); }
+    .btn-find:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-find svg { width: 16px; height: 16px; }
+
+    /* RESULTS */
+    #results-section { display: none; }
+    .results-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    .results-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); }
+    .results-meta { font-size: 12px; color: var(--text3); }
+    .results-meta strong { color: var(--text2); }
+
+    /* Hospital card — full width, stacked layout, NO overlap ever */
+    .hcard { background: var(--panel); border: 1px solid var(--stroke); border-radius: 10px; padding: 22px 24px; margin-bottom: 12px; transition: border-color 0.2s; animation: fadeUp 0.3s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .hcard:hover { border-color: var(--stroke2); }
+    .hcard.golden { border-color: rgba(14,164,114,0.3); }
+
+    /* Row 1: rank + name + badges */
+    .hcard-row1 { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+    .hcard-rank { width: 32px; height: 32px; border-radius: 50%; background: var(--panel2); border: 1px solid var(--stroke2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--text2); flex-shrink: 0; margin-top: 2px; }
+    .hcard-rank.first { background: var(--crimson-dim); border-color: var(--crimson-line); color: var(--crimson); }
+    .hcard-info { flex: 1; min-width: 0; }
+    .hcard-name { font-family: 'DM Serif Display', serif; font-size: 19px; color: var(--text); margin-bottom: 4px; line-height: 1.2; }
+    .hcard-addr { font-size: 12px; color: var(--text3); line-height: 1.5; }
+    .hcard-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .badge { padding: 4px 9px; border-radius: 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; white-space: nowrap; }
+    .badge-best { background: var(--crimson-dim); border: 1px solid var(--crimson-line); color: var(--crimson); }
+    .badge-golden { background: var(--green-dim); border: 1px solid var(--green-line); color: var(--green); }
+
+    /* Row 2: stats grid */
+    .hcard-stats { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--panel2); border: 1px solid var(--stroke); border-radius: 7px; overflow: hidden; margin-bottom: 14px; }
+    .stat { padding: 11px 14px; border-right: 1px solid var(--stroke); }
+    .stat:last-child { border-right: none; }
+    .stat-val { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 3px; }
+    .stat-key { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; }
+
+    /* Row 3: tags */
+    .hcard-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .tag { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500; background: var(--panel3); border: 1px solid var(--stroke2); color: var(--text2); }
+    .tag-green  { background: var(--green-dim);  border-color: var(--green-line);  color: var(--green); }
+    .tag-amber  { background: var(--amber-dim);  border-color: var(--amber-line);  color: var(--amber); }
+    .tag-red    { background: var(--crimson-dim); border-color: var(--crimson-line); color: var(--crimson); }
+
+    /* Row 4: score bar */
+    .hcard-score { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .score-lbl { font-size: 11px; color: var(--text3); white-space: nowrap; }
+    .score-track { flex: 1; height: 4px; background: var(--panel3); border-radius: 2px; overflow: hidden; }
+    .score-fill { height: 100%; border-radius: 2px; background: var(--crimson); width: 0; transition: width 0.9s cubic-bezier(0.16,1,0.3,1); }
+    .score-num { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; min-width: 48px; text-align: right; }
+
+    /* Row 5: action buttons — flex row, each button has equal space, NO overlap */
+    .hcard-actions { display: flex; gap: 8px; }
+    .act-btn { flex: 1; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--stroke2); background: var(--panel2); color: var(--text2); font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+    .act-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .act-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .act-btn-nav { background: var(--crimson-dim); border-color: var(--crimson-line); color: var(--crimson); }
+    .act-btn-nav:hover { background: var(--crimson); color: #fff; border-color: var(--crimson); }
+    .act-btn.sent { background: var(--green-dim); border-color: var(--green-line); color: var(--green); cursor: default; pointer-events: none; }
+
+    /* Loading */
+    .loading-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(6,7,12,0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+    .loading-overlay.show { display: flex; }
+    .spinner { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--stroke2); border-top-color: var(--crimson); animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: var(--text2); }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(6,7,12,0.8); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 24px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--panel); border: 1px solid var(--stroke2); border-radius: 10px; padding: 28px; width: 100%; max-width: 400px; }
+    .modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); margin-bottom: 6px; }
+    .modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 22px; line-height: 1.5; }
+    .modal-field { margin-bottom: 14px; }
+    .modal-field label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text3); margin-bottom: 7px; }
+    .modal-field input { width: 100%; padding: 11px 13px; background: var(--panel2); border: 1px solid var(--stroke); border-radius: 6px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s; }
+    .modal-field input:focus { border-color: rgba(200,16,46,0.35); }
+    .modal-field input::placeholder { color: var(--text3); }
+    .modal-footer { display: flex; gap: 8px; margin-top: 20px; }
+    .btn-cancel { flex: 1; padding: 11px; border-radius: 6px; border: 1px solid var(--stroke2); background: transparent; color: var(--text2); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .btn-cancel:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .btn-send { flex: 2; padding: 11px; border-radius: 6px; border: none; background: var(--crimson); color: #fff; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-send:hover { background: var(--crimson-dark); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: var(--panel); border: 1px solid var(--stroke2); border-radius: 7px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text); box-shadow: 0 16px 48px rgba(0,0,0,0.5); transform: translateY(64px); opacity: 0; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); max-width: 300px; pointer-events: none; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-bar { width: 3px; border-radius: 2px; align-self: stretch; flex-shrink: 0; }
+    .toast.ok  { border-color: var(--green-line);   } .toast.ok  .toast-bar { background: var(--green); }
+    .toast.err { border-color: var(--crimson-line); } .toast.err .toast-bar { background: var(--crimson); }
+    .toast.inf { border-color: var(--stroke2);      } .toast.inf .toast-bar { background: var(--text3); }
+
+
+    /* Footer */
+    .footer { border-top: 1px solid var(--stroke); padding: 24px 28px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: 0.3px; }
+
+    /* Mobile */
+    @media (max-width: 580px) {
+      .emergency-grid { grid-template-columns: repeat(2, 1fr); }
+      .hcard-stats { grid-template-columns: repeat(2, 1fr); }
+      .stat:nth-child(2) { border-right: none; }
+      .stat:nth-child(3), .stat:nth-child(4) { border-top: 1px solid var(--stroke); }
+      .hcard-row1 { flex-wrap: wrap; }
+      .hcard-actions { flex-wrap: wrap; }
+      .act-btn { min-width: calc(50% - 4px); }
+      .header { padding: 0 16px; }
+      .main { padding: 28px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Searching hospitals...</div>
+</div>
+
+<!-- Family modal -->
+<div class="modal-overlay" id="family-modal">
+  <div class="modal">
+    <div class="modal-title">Notify Family</div>
+    <div class="modal-sub" id="modal-sub">Send hospital location and details to family.</div>
+    <div class="modal-field">
+      <label>Patient Name (optional)</label>
+      <input type="text" id="f-name" placeholder="e.g. Rahul Sharma"/>
+    </div>
+    <div class="modal-field">
+      <label>Family Phone Number</label>
+      <input type="tel" id="f-phone" placeholder="+91 98765 43210"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-send" onclick="sendFamily()">Send Notification</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="toast-bar"></div><span id="toast-msg"></span></div>
+
+<!-- Header -->
+<header class="header">
+  <a class="brand" href="#">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M2 12h20"/></svg>
+    </div>
+    <div class="brand-name">San<em>jeevni</em></div>
+  </a>
+  <div class="header-right">
+    <div class="live-badge"><div class="live-dot"></div>Live</div>
+    <div class="user-badge" id="user-badge" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span id="user-name"></span>
+    </div>
+    <button class="btn-sm btn-sm-demo" onclick="runDemo()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Demo
+    </button>
+    <button class="btn-sm" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <!-- icon updated by script -->
+      </svg>
+    </button>
+    <a class="btn-sm" href="login.html" id="signin-link">Sign In</a>
+    <button class="btn-sm" id="signout-btn" style="display:none" onclick="signOut()">Sign Out</button>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="main">
+
+  <div class="hero">
+    <div class="hero-tag"><div class="hero-tag-dot"></div>Emergency Response System</div>
+    <h1 class="hero-title">Find the <em>right</em> hospital,<br/>not just the nearest one.</h1>
+    <p class="hero-sub">Hospitals ranked by clinical readiness — ICU availability, OT status, bed capacity, and distance — so critical patients reach prepared facilities faster.</p>
+  </div>
+
+  <div class="form-card">
+
+    <!-- Step 1 -->
+    <div class="form-section">
+      <div class="step-label"><span class="step-num">1</span>Emergency Type</div>
+      <div class="emergency-grid">
+        <div class="ec" data-type="Cardiac" onclick="selectType(this)">
+          <div class="ec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+          <div class="ec-label">Cardiac</div>
+        </div>
+        <div class="ec" data-type="Accident" onclick="selectType(this)">
+          <div class="ec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="ec-label">Accident</div>
+        </div>
+        <div class="ec" data-type="Respiratory" onclick="selectType(this)">
+          <div class="ec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/><path d="M8 12s1 3 4 3 4-3 4-3"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+          <div class="ec-label">Respiratory</div>
+        </div>
+        <div class="ec" data-type="Stroke" onclick="selectType(this)">
+          <div class="ec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="ec-label">Stroke</div>
+        </div>
+        <div class="ec" data-type="Burns" onclick="selectType(this)">
+          <div class="ec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="ec-label">Burns</div>
+        </div>
+        <div class="ec" data-type="Maternity" onclick="selectType(this)">
+          <div class="ec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="ec-label">Maternity</div>
+        </div>
+        <div class="ec" data-type="Pediatric" onclick="selectType(this)">
+          <div class="ec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg></div>
+          <div class="ec-label">Pediatric</div>
+        </div>
+        <div class="ec" data-type="Poisoning" onclick="selectType(this)">
+          <div class="ec-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2h4v3l1 2v5l-1 1v2l1 7H9l1-7v-2l-1-1V7l1-2V2z"/><path d="M8.5 22h7"/></svg></div>
+          <div class="ec-label">Poisoning</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="form-section">
+      <div class="step-label"><span class="step-num">2</span>Severity</div>
+      <div class="severity-grid">
+        <div class="sev" data-v="stable" onclick="selectSev(this)">
+          <div class="sev-dot"></div>
+          <div class="sev-name">Stable</div>
+          <div class="sev-desc">Conscious, responsive</div>
+        </div>
+        <div class="sev" data-v="moderate" onclick="selectSev(this)">
+          <div class="sev-dot"></div>
+          <div class="sev-name">Moderate</div>
+          <div class="sev-desc">Needs attention soon</div>
+        </div>
+        <div class="sev" data-v="critical" onclick="selectSev(this)">
+          <div class="sev-dot"></div>
+          <div class="sev-name">Critical</div>
+          <div class="sev-desc">Immediate care required</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="form-section">
+      <div class="step-label"><span class="step-num">3</span>Location</div>
+      <div class="loc-row">
+        <div class="loc-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <input class="loc-input" id="loc-input" type="text" placeholder="Enter area or landmark in Delhi"/>
+        </div>
+        <button class="btn-gps" onclick="getGPS()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          Use GPS
+        </button>
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <button class="btn-find" id="find-btn" onclick="findHospitals()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Find Hospitals
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+    <div class="results-header">
+      <div class="results-title" id="results-title">Results</div>
+      <div class="results-meta" id="results-meta"></div>
+    </div>
+    <div id="results-list"></div>
+  </div>
+
+</main>
+
+
+<footer class="footer">
+  Sanjeevni &mdash; Team Sudarshan &mdash; Emergency Hospital Finder &mdash; Hackathon 2025
+</footer>
+
+<script>
+  const API = 'http://localhost:3000/api';
+  let selType = null, selSev = null, lat = null, lng = null;
+  let notified = {}, familyTarget = null;
+
+  // theme support
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('sanjeevni_theme', theme);
+    updateThemeIcon(theme);
+  }
+  function updateThemeIcon(theme) {
+    const icon = document.getElementById('theme-icon');
+    if (!icon) return;
+    if (theme === 'light') {
+      // sun icon
+      icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    } else {
+      // moon icon
+      icon.innerHTML = '<path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 17a7 7 0 009-4.21z"/>';
+    }
+  }
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  }
+  window.addEventListener('load', () => {
+    const stored = localStorage.getItem('sanjeevni_theme');
+    if (stored) applyTheme(stored);
+    else applyTheme('dark');
+  });
+
+  // Session
+  window.addEventListener('load', () => {
+    const name  = localStorage.getItem('sanjeevni_name');
+    const token = localStorage.getItem('sanjeevni_token');
+    if (token && name) {
+      document.getElementById('user-badge').style.display = 'flex';
+      document.getElementById('user-name').textContent = name;
+      document.getElementById('signin-link').style.display = 'none';
+      document.getElementById('signout-btn').style.display = 'inline-flex';
+    }
+  });
+
+  function signOut() { localStorage.clear(); window.location.href = 'login.html'; }
+
+  function selectType(el) {
+    document.querySelectorAll('.ec').forEach(e => e.classList.remove('active'));
+    el.classList.add('active'); selType = el.dataset.type;
+  }
+  function selectSev(el) {
+    document.querySelectorAll('.sev').forEach(e => e.classList.remove('active'));
+    el.classList.add('active'); selSev = el.dataset.v;
+  }
+
+  function getGPS() {
+    if (!navigator.geolocation) { showToast('GPS not supported.', 'err'); return; }
+    showToast('Detecting location...', 'inf');
+    navigator.geolocation.getCurrentPosition(
+      p => {
+        lat = p.coords.latitude; lng = p.coords.longitude;
+        document.getElementById('loc-input').value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        showToast('Location detected.', 'ok');
+      },
+      () => showToast('GPS blocked. Enter location manually.', 'err')
+    );
+  }
+
+  async function findHospitals() {
+    if (!selType) { showToast('Select an emergency type.', 'err'); return; }
+    if (!selSev)  { showToast('Select a severity level.', 'err'); return; }
+
+    const locVal = document.getElementById('loc-input').value.trim();
+    let useLat = lat, useLng = lng;
+    if (!useLat) {
+      const p = locVal.split(',');
+      if (p.length === 2 && !isNaN(p[0]) && !isNaN(p[1])) {
+        useLat = parseFloat(p[0]); useLng = parseFloat(p[1]);
+      } else { useLat = 28.6139; useLng = 77.2090; }
+    }
+
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('find-btn').disabled = true;
+
+    let hospitals = [];
+    try {
+      const r = await fetch(`${API}/hospitals?type=${selType}&severity=${selSev}&lat=${useLat}&lng=${useLng}`, { signal: AbortSignal.timeout(5000) });
+      if (r.ok) { const d = await r.json(); hospitals = d.hospitals || []; }
+    } catch { hospitals = mockData(); showToast('Using demo data — server offline.', 'inf'); }
+
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('find-btn').disabled = false;
+    render(hospitals, useLat, useLng);
+  }
+
+  function render(list, useLat, useLng) {
+    const sec  = document.getElementById('results-section');
+    const el   = document.getElementById('results-list');
+    const ttl  = document.getElementById('results-title');
+    const meta = document.getElementById('results-meta');
+
+    if (!list.length) {
+      sec.style.display = 'block';
+      ttl.textContent = 'No hospitals found';
+      el.innerHTML = `<div style="padding:32px;text-align:center;color:var(--text3);font-size:14px;">No hospitals match your criteria. Try adjusting severity or emergency type.</div>`;
+      return;
+    }
+
+    ttl.textContent = `${list.length} Hospital${list.length > 1 ? 's' : ''} Found`;
+    meta.innerHTML  = `<strong>${selType}</strong> &middot; <strong style="text-transform:capitalize">${selSev}</strong> severity`;
+    sec.style.display = 'block';
+    notified = {};
+
+    el.innerHTML = list.map((h, i) => {
+      const score = Math.round(h.score || 0);
+      const load  = (h.status?.currentLoad || 'Low');
+      const loadCls = load === 'Low' ? 'tag-green' : load === 'Moderate' ? 'tag-amber' : 'tag-red';
+      return `
+      <div class="hcard${h.goldenHour ? ' golden' : ''}" style="animation-delay:${i*0.07}s">
+
+        <div class="hcard-row1">
+          <div class="hcard-rank${i === 0 ? ' first' : ''}">${i+1}</div>
+          <div class="hcard-info">
+            <div class="hcard-name">${h.name}</div>
+            <div class="hcard-addr">${h.address}${h.phone ? ' &middot; ' + h.phone : ''}</div>
+          </div>
+          <div class="hcard-badges">
+            ${i === 0         ? '<span class="badge badge-best">Best Match</span>' : ''}
+            ${h.goldenHour    ? '<span class="badge badge-golden">Golden Hour</span>' : ''}
+          </div>
+        </div>
+
+        <div class="hcard-stats">
+          <div class="stat"><div class="stat-val">${h.distance?.toFixed(1) ?? '—'} km</div><div class="stat-key">Distance</div></div>
+          <div class="stat"><div class="stat-val">${h.eta ?? '—'} min</div><div class="stat-key">ETA</div></div>
+          <div class="stat"><div class="stat-val">${h.status?.icuBeds ?? '—'}</div><div class="stat-key">ICU Beds</div></div>
+          <div class="stat"><div class="stat-val">${h.rating?.toFixed(1) ?? '—'}</div><div class="stat-key">Rating</div></div>
+        </div>
+
+        <div class="hcard-tags">
+          ${h.status?.bloodBankAvail     ? '<span class="tag">Blood Bank</span>' : ''}
+          ${h.status?.operationTheaterFree ? '<span class="tag">OT Available</span>' : ''}
+          ${h.status?.ambulanceAvail      ? '<span class="tag">Ambulance</span>' : ''}
+          <span class="tag ${loadCls}">${load} Load</span>
+        </div>
+
+        <div class="hcard-score">
+          <span class="score-lbl">Readiness Score</span>
+          <div class="score-track"><div class="score-fill" data-s="${score}"></div></div>
+          <span class="score-num">${score} / 100</span>
+        </div>
+
+        <div class="hcard-actions">
+          <button class="act-btn act-btn-nav" onclick="navigate('${h.coordinates?.[1] ?? useLat}','${h.coordinates?.[0] ?? useLng}','${h.name.replace(/'/g,"\\'")}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            Navigate
+          </button>
+          <button class="act-btn" id="nb-${i}" onclick="notifyHosp(${i},'${h.name.replace(/'/g,"\\'")}','${h.phone||''}',${h.eta||10})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.64 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.55 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.29 6.29l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Notify Hospital
+          </button>
+          <button class="act-btn" onclick="openModal('${h.name.replace(/'/g,"\\'")}','${h.address.replace(/'/g,"\\'")}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Notify Family
+          </button>
+        </div>
+
+      </div>`;
+    }).join('');
+
+    setTimeout(() => {
+      document.querySelectorAll('.score-fill').forEach(b => { b.style.width = b.dataset.s + '%'; });
+    }, 120);
+
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function navigate(la, lo, name) {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${la},${lo}`, '_blank');
+  }
+
+  async function notifyHosp(i, name, phone, eta) {
+    if (notified[i]) return;
+    const btn = document.getElementById(`nb-${i}`);
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/></svg> Sending...`;
+    btn.disabled = true;
+    try {
+      await fetch(`${API}/notify/hospital`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hospitalName: name, hospitalPhone: phone, emergencyType: selType, severity: selSev, patientETA: eta }),
+        signal: AbortSignal.timeout(4000)
+      });
+    } catch {}
+    notified[i] = true;
+    btn.className = 'act-btn sent';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg> Notified`;
+    showToast(`${name} has been notified.`, 'ok');
+  }
+
+  function openModal(name, addr) {
+    familyTarget = { name, addr };
+    document.getElementById('modal-sub').textContent = `Sending details for ${name}.`;
+    document.getElementById('family-modal').classList.add('show');
+  }
+  function closeModal() {
+    document.getElementById('family-modal').classList.remove('show');
+    document.getElementById('f-phone').value = '';
+    document.getElementById('f-name').value = '';
+  }
+  async function sendFamily() {
+    const phone = document.getElementById('f-phone').value.trim();
+    if (!phone) { showToast('Please enter a phone number.', 'err'); return; }
+    try {
+      await fetch(`${API}/notify/family`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ familyPhone: phone, patientName: document.getElementById('f-name').value || 'Patient', hospitalName: familyTarget?.name, hospitalAddress: familyTarget?.addr, emergencyType: selType }),
+        signal: AbortSignal.timeout(4000)
+      });
+    } catch {}
+    closeModal();
+    showToast('Family notification sent.', 'ok');
+  }
+
+  function runDemo() {
+    showToast('Starting demo...', 'inf');
+    setTimeout(() => selectType(document.querySelector('[data-type="Cardiac"]')), 400);
+    setTimeout(() => selectSev(document.querySelector('[data-v="critical"]')), 900);
+    setTimeout(() => { document.getElementById('loc-input').value = 'Connaught Place, New Delhi'; lat = 28.6315; lng = 77.2167; }, 1400);
+    setTimeout(() => findHospitals(), 2000);
+  }
+
+  function mockData() {
+    return [
+      { name:'Fortis Escorts Heart Institute', address:'Okhla Industrial Area, New Delhi 110020', phone:'+91-11-4037-1000', distance:5.17, eta:8, score:84, goldenHour:true, rating:4.7, coordinates:[77.216,28.5678], status:{ icuBeds:95, generalBeds:180, currentLoad:'Moderate', bloodBankAvail:true, operationTheaterFree:true, ambulanceAvail:12 }},
+      { name:'AIIMS Delhi', address:'Ansari Nagar, New Delhi 110029', phone:'+91-11-2659-3676', distance:5.19, eta:8, score:74, goldenHour:true, rating:4.8, coordinates:[77.216,28.5676], status:{ icuBeds:120, generalBeds:250, currentLoad:'High', bloodBankAvail:true, operationTheaterFree:true, ambulanceAvail:15 }},
+      { name:'Max Super Speciality Hospital', address:'Press Enclave Road, Saket, New Delhi 110017', phone:'+91-11-2651-5050', distance:7.4, eta:12, score:68, goldenHour:false, rating:4.5, coordinates:[77.2073,28.5245], status:{ icuBeds:60, generalBeds:200, currentLoad:'Low', bloodBankAvail:true, operationTheaterFree:false, ambulanceAvail:8 }}
+    ];
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.className = `toast show ${type}`;
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), 3200);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hospital Dashboard — Sanjeevni</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --crimson: #C8102E; --crimson-dark: #a00d24;
+      --crimson-dim: rgba(200,16,46,0.08); --crimson-line: rgba(200,16,46,0.28);
+      --bg: #06070C; --panel: #0E1018; --panel2: #13161F; --panel3: #191D28;
+      --stroke: rgba(255,255,255,0.06); --stroke2: rgba(255,255,255,0.11);
+      --text: #E6E9F4; --text2: #7C8099; --text3: #454A60;
+      --green: #0EA472; --green-dim: rgba(14,164,114,0.08); --green-line: rgba(14,164,114,0.25);
+      --amber: #D97706; --amber-dim: rgba(217,119,6,0.08); --amber-line: rgba(217,119,6,0.28);
+    }
+    /* light theme overrides */
+    [data-theme="light"] {
+      --bg: #F4F5F8;
+      --panel: #FFFFFF;
+      --panel2: #F0F1F5;
+      --panel3: #E8E9EF;
+      --text: #0D0F1A;
+      --text2: #4A4F66;
+      --text3: #9A9FB5;
+      --stroke: rgba(0,0,0,0.08);
+      --stroke2: rgba(0,0,0,0.13);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse 50% 30% at 50% 0%, rgba(200,16,46,0.05), transparent 70%); }
+    .theme-toggle { position: absolute; top: 12px; right: 12px; padding: 6px; border: 1px solid var(--stroke2); border-radius: 6px; background: var(--panel2); color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .theme-toggle:hover { color: var(--text); }
+    .theme-toggle svg { width: 18px; height: 18px; }
+
+    /* HEADER */
+    .header { position: sticky; top: 0; z-index: 100; background: rgba(6,7,12,0.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--stroke); height: 56px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 6px; background: var(--crimson-dim); border: 1px solid var(--crimson-line); display: flex; align-items: center; justify-content: center; }
+    .brand-mark svg { width: 14px; height: 14px; color: var(--crimson); }
+    .brand-name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); }
+    .brand-name em { font-style: italic; color: var(--crimson); }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .header-role { display: flex; align-items: center; gap: 7px; background: var(--panel2); border: 1px solid var(--stroke2); border-radius: 5px; padding: 5px 10px; font-size: 12px; color: var(--text2); }
+    .header-role svg { width: 12px; height: 12px; color: var(--text3); }
+    .btn-sm { padding: 6px 12px; border-radius: 5px; border: 1px solid var(--stroke2); background: transparent; color: var(--text2); font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-sm:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .btn-sm svg { width: 12px; height: 12px; }
+
+    /* MAIN */
+    .main { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* Page header */
+    .page-header { margin-bottom: 32px; }
+    .page-tag { display: inline-flex; align-items: center; gap: 7px; background: var(--panel2); border: 1px solid var(--stroke2); border-radius: 4px; padding: 4px 10px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; }
+    .page-title { font-family: 'DM Serif Display', serif; font-size: clamp(24px, 3vw, 36px); color: var(--text); margin-bottom: 8px; }
+    .page-title em { font-style: italic; color: var(--crimson); }
+    .page-sub { font-size: 13px; color: var(--text2); line-height: 1.6; max-width: 500px; }
+
+    /* Two column layout */
+    .grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
+
+    /* Cards */
+    .card { background: var(--panel); border: 1px solid var(--stroke); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+    .card-header { padding: 18px 22px; border-bottom: 1px solid var(--stroke); display: flex; align-items: center; gap: 12px; }
+    .card-header-icon { width: 30px; height: 30px; border-radius: 6px; background: var(--crimson-dim); border: 1px solid var(--crimson-line); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-header-icon svg { width: 14px; height: 14px; color: var(--crimson); }
+    .card-header-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .card-header-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+    .card-body { padding: 22px; }
+
+    /* Hospital selector */
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text3); margin-bottom: 7px; }
+    .field select, .field input {
+      width: 100%; padding: 11px 13px; background: var(--panel2); border: 1px solid var(--stroke); border-radius: 6px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s; appearance: none;
+    }
+    .field select:focus, .field input:focus { border-color: rgba(200,16,46,0.35); }
+    .field select option { background: var(--panel2); }
+    .select-wrap { position: relative; }
+    .select-wrap svg { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text3); pointer-events: none; }
+
+    /* Bed count inputs */
+    .bed-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .bed-field label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+    .bed-input-wrap { position: relative; }
+    .bed-input { width: 100%; padding: 10px 36px 10px 12px; background: var(--panel2); border: 1px solid var(--stroke); border-radius: 6px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; outline: none; transition: border-color 0.15s; text-align: center; }
+    .bed-input:focus { border-color: rgba(200,16,46,0.35); }
+    .bed-input.low    { border-color: var(--crimson-line); color: var(--crimson); }
+    .bed-input.medium { border-color: var(--amber-line);  color: var(--amber); }
+    .bed-input.high   { border-color: var(--green-line);  color: var(--green); }
+    .bed-label { font-size: 10px; color: var(--text3); text-align: center; margin-top: 4px; }
+
+    /* Load selector */
+    .load-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .load-btn { padding: 10px 8px; border-radius: 6px; border: 1px solid var(--stroke); background: var(--panel2); cursor: pointer; text-align: center; transition: all 0.15s; }
+    .load-btn:hover { border-color: var(--stroke2); }
+    .load-btn[data-load="Low"].active    { border-color: var(--green-line);  background: var(--green-dim); }
+    .load-btn[data-load="Moderate"].active { border-color: var(--amber-line);  background: var(--amber-dim); }
+    .load-btn[data-load="High"].active   { border-color: var(--crimson-line); background: var(--crimson-dim); }
+    .load-dot { width: 7px; height: 7px; border-radius: 50%; margin: 0 auto 6px; }
+    .load-btn[data-load="Low"]      .load-dot { background: var(--green); }
+    .load-btn[data-load="Moderate"] .load-dot { background: var(--amber); }
+    .load-btn[data-load="High"]     .load-dot { background: var(--crimson); }
+    .load-name { font-size: 12px; font-weight: 500; color: var(--text2); }
+    .load-btn[data-load="Low"].active    .load-name { color: var(--green); }
+    .load-btn[data-load="Moderate"].active .load-name { color: var(--amber); }
+    .load-btn[data-load="High"].active   .load-name { color: var(--crimson); }
+
+    /* Toggle switches */
+    .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .toggle-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--panel2); border: 1px solid var(--stroke); border-radius: 7px; transition: border-color 0.15s; }
+    .toggle-item.on { border-color: var(--green-line); background: var(--green-dim); }
+    .toggle-label { font-size: 12px; font-weight: 500; color: var(--text2); }
+    .toggle-item.on .toggle-label { color: var(--text); }
+    .toggle { position: relative; width: 34px; height: 18px; flex-shrink: 0; cursor: pointer; }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track { position: absolute; inset: 0; border-radius: 9px; background: var(--panel3); border: 1px solid var(--stroke2); transition: background 0.2s, border-color 0.2s; }
+    .toggle input:checked ~ .toggle-track { background: var(--green); border-color: var(--green); }
+    .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--text3); transition: transform 0.2s, background 0.2s; }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(16px); background: #fff; }
+
+    /* Save button */
+    .btn-save { width: 100%; padding: 13px; border-radius: 7px; border: none; background: var(--crimson); color: #fff; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-save:hover { background: var(--crimson-dark); }
+    .btn-save:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-save svg { width: 15px; height: 15px; }
+
+    /* RIGHT COLUMN — Live preview */
+    .preview-card { background: var(--panel); border: 1px solid var(--stroke); border-radius: 10px; overflow: hidden; position: sticky; top: 72px; }
+    .preview-header { padding: 16px 20px; border-bottom: 1px solid var(--stroke); display: flex; align-items: center; justify-content: space-between; }
+    .preview-title { font-size: 11px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text3); }
+    .preview-live { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--green); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+    .preview-live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: blink 1.8s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+    .preview-body { padding: 20px; }
+
+    /* Preview hospital card (mirrors patient view) */
+    .pcard-name { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--text); margin-bottom: 4px; line-height: 1.2; }
+    .pcard-addr { font-size: 11px; color: var(--text3); margin-bottom: 14px; line-height: 1.5; }
+    .pcard-stats { display: grid; grid-template-columns: repeat(2, 1fr); background: var(--panel2); border: 1px solid var(--stroke); border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+    .pstat { padding: 10px 12px; border-right: 1px solid var(--stroke); }
+    .pstat:nth-child(2n) { border-right: none; }
+    .pstat:nth-child(3), .pstat:nth-child(4) { border-top: 1px solid var(--stroke); }
+    .pstat-val { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .pstat-key { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
+    .pcard-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+    .ptag { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; background: var(--panel3); border: 1px solid var(--stroke2); color: var(--text2); }
+    .ptag-green  { background: var(--green-dim);  border-color: var(--green-line);  color: var(--green); }
+    .ptag-amber  { background: var(--amber-dim);  border-color: var(--amber-line);  color: var(--amber); }
+    .ptag-red    { background: var(--crimson-dim); border-color: var(--crimson-line); color: var(--crimson); }
+
+    /* Alert simulation */
+    .alert-section { padding: 0 20px 20px; }
+    .btn-simulate { width: 100%; padding: 11px; border-radius: 6px; border: 1px solid var(--stroke2); background: transparent; color: var(--text2); font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .btn-simulate:hover { border-color: var(--amber-line); color: var(--amber); background: var(--amber-dim); }
+    .btn-simulate svg { width: 13px; height: 13px; }
+
+    /* Incoming alert popup */
+    .alert-popup { display: none; margin-top: 14px; background: var(--panel2); border: 1px solid var(--amber-line); border-radius: 8px; padding: 16px; animation: fadeUp 0.3s ease; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .alert-popup.show { display: block; }
+    .alert-popup-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .alert-popup-header svg { width: 15px; height: 15px; color: var(--amber); flex-shrink: 0; }
+    .alert-popup-title { font-size: 12px; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 1px; }
+    .alert-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .alert-row:last-child { margin-bottom: 0; }
+    .alert-key { font-size: 11px; color: var(--text3); }
+    .alert-val { font-size: 11px; font-weight: 600; color: var(--text); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: var(--panel); border: 1px solid var(--stroke2); border-radius: 7px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text); box-shadow: 0 16px 48px rgba(0,0,0,0.5); transform: translateY(64px); opacity: 0; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); max-width: 300px; pointer-events: none; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-bar { width: 3px; border-radius: 2px; align-self: stretch; flex-shrink: 0; }
+    .toast.ok  { border-color: var(--green-line);   } .toast.ok  .toast-bar { background: var(--green); }
+    .toast.err { border-color: var(--crimson-line); } .toast.err .toast-bar { background: var(--crimson); }
+    .toast.inf { border-color: var(--stroke2);      } .toast.inf .toast-bar { background: var(--text3); }
+
+    /* Footer */
+    .footer { border-top: 1px solid var(--stroke); padding: 24px 28px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: 0.3px; }
+
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+      .preview-card { position: static; }
+      .bed-grid { grid-template-columns: 1fr 1fr; }
+      .toggle-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .main { padding: 24px 16px 60px; }
+      .header { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="ambient"></div>
+<div class="toast" id="toast"><div class="toast-bar"></div><span id="toast-msg"></span></div>
+
+<header class="header">
+  <a class="brand" href="index.html">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M2 12h20"/></svg>
+    </div>
+    <div class="brand-name">San<em>jeevni</em></div>
+  </a>
+  <div class="header-right">
+    <div class="header-role">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span id="hospital-name-header">Hospital Admin</span>
+    </div>
+    <a class="btn-sm" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back
+    </a>
+    <button class="btn-sm" onclick="signOut()">Sign Out</button>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
+    </button>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="page-header">
+    <div class="page-tag">Hospital Dashboard</div>
+    <h1 class="page-title">Manage <em>Live Availability</em></h1>
+    <p class="page-sub">Update your hospital's real-time status so patients in critical situations are matched to the most prepared facility.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT — Edit form -->
+    <div>
+
+      <!-- Hospital selector -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div>
+            <div class="card-header-title">Select Hospital</div>
+            <div class="card-header-sub">Choose the facility you are managing</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label>Hospital</label>
+            <div class="select-wrap">
+              <select id="hospital-select" onchange="loadHospital()">
+                <option value="">Select a hospital...</option>
+                <option value="1">Fortis Escorts Heart Institute</option>
+                <option value="2">AIIMS Delhi</option>
+                <option value="3">Max Super Speciality Hospital, Saket</option>
+                <option value="4">Apollo Hospitals, New Delhi</option>
+                <option value="5">Sir Ganga Ram Hospital</option>
+                <option value="6">Safdarjung Hospital</option>
+                <option value="7">GTB Hospital</option>
+                <option value="8">BLK Max Super Speciality Hospital</option>
+              </select>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Admin Password</label>
+            <input type="password" id="admin-password" placeholder="Enter admin password" value="admin123"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bed availability -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 9V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2"/><path d="M2 14v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3"/><path d="M2 11h20"/></svg>
+          </div>
+          <div>
+            <div class="card-header-title">Bed Availability</div>
+            <div class="card-header-sub">Color coded — red below 5, amber 5-10, green above 10</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="bed-grid">
+            <div class="bed-field">
+              <label>General Beds</label>
+              <div class="bed-input-wrap">
+                <input class="bed-input" type="number" id="general-beds" value="120" min="0" oninput="updateBedColor(this); updatePreview()"/>
+              </div>
+              <div class="bed-label">Available</div>
+            </div>
+            <div class="bed-field">
+              <label>ICU Beds</label>
+              <div class="bed-input-wrap">
+                <input class="bed-input" type="number" id="icu-beds" value="18" min="0" oninput="updateBedColor(this); updatePreview()"/>
+              </div>
+              <div class="bed-label">Available</div>
+            </div>
+            <div class="bed-field">
+              <label>Ventilators</label>
+              <div class="bed-input-wrap">
+                <input class="bed-input" type="number" id="ventilators" value="12" min="0" oninput="updateBedColor(this); updatePreview()"/>
+              </div>
+              <div class="bed-label">Available</div>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:0">
+            <label>Current Patient Load</label>
+            <div class="load-grid">
+              <div class="load-btn active" data-load="Low" onclick="selectLoad(this)">
+                <div class="load-dot"></div>
+                <div class="load-name">Low</div>
+              </div>
+              <div class="load-btn" data-load="Moderate" onclick="selectLoad(this)">
+                <div class="load-dot"></div>
+                <div class="load-name">Moderate</div>
+              </div>
+              <div class="load-btn" data-load="High" onclick="selectLoad(this)">
+                <div class="load-dot"></div>
+                <div class="load-name">High</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Facilities -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <div>
+            <div class="card-header-title">Facility Availability</div>
+            <div class="card-header-sub">Toggle what is currently operational</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="toggle-grid">
+            <div class="toggle-item on" id="ti-blood">
+              <span class="toggle-label">Blood Bank</span>
+              <label class="toggle">
+                <input type="checkbox" id="blood-bank" checked onchange="updateToggleStyle('ti-blood',this); updatePreview()"/>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+            <div class="toggle-item on" id="ti-ot">
+              <span class="toggle-label">Operation Theatre</span>
+              <label class="toggle">
+                <input type="checkbox" id="ot-free" checked onchange="updateToggleStyle('ti-ot',this); updatePreview()"/>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+            <div class="toggle-item on" id="ti-amb">
+              <span class="toggle-label">Ambulance</span>
+              <label class="toggle">
+                <input type="checkbox" id="ambulance" checked onchange="updateToggleStyle('ti-amb',this); updatePreview()"/>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+            <div class="toggle-item on" id="ti-247">
+              <span class="toggle-label">24/7 Emergency</span>
+              <label class="toggle">
+                <input type="checkbox" id="always-open" checked onchange="updateToggleStyle('ti-247',this); updatePreview()"/>
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <button class="btn-save" id="save-btn" onclick="saveStatus()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Status
+      </button>
+
+    </div>
+
+    <!-- RIGHT — Live preview -->
+    <div>
+      <div class="preview-card">
+        <div class="preview-header">
+          <div class="preview-title">Patient View Preview</div>
+          <div class="preview-live"><div class="preview-live-dot"></div>Live</div>
+        </div>
+        <div class="preview-body">
+          <div class="pcard-name" id="pv-name">Fortis Escorts Heart Institute</div>
+          <div class="pcard-addr">Okhla Industrial Area, New Delhi &middot; +91-11-4037-1000</div>
+          <div class="pcard-stats">
+            <div class="pstat"><div class="pstat-val" id="pv-icu">18</div><div class="pstat-key">ICU Beds</div></div>
+            <div class="pstat"><div class="pstat-val" id="pv-gen">120</div><div class="pstat-key">Gen. Beds</div></div>
+            <div class="pstat"><div class="pstat-val" id="pv-vent">12</div><div class="pstat-key">Ventilators</div></div>
+            <div class="pstat"><div class="pstat-val" id="pv-load" style="font-size:12px;color:var(--green)">Low</div><div class="pstat-key">Patient Load</div></div>
+          </div>
+          <div class="pcard-tags" id="pv-tags">
+            <span class="ptag">Blood Bank</span>
+            <span class="ptag">OT Available</span>
+            <span class="ptag">Ambulance</span>
+            <span class="ptag">24/7 Emergency</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);line-height:1.5;">This is how your hospital card appears to patients searching for emergency care.</div>
+        </div>
+        <div class="alert-section">
+          <button class="btn-simulate" onclick="simulateAlert()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Simulate Incoming Patient Alert
+          </button>
+          <div class="alert-popup" id="alert-popup">
+            <div class="alert-popup-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div class="alert-popup-title">Incoming Patient Alert</div>
+            </div>
+            <div class="alert-row"><span class="alert-key">Emergency Type</span><span class="alert-val">Cardiac</span></div>
+            <div class="alert-row"><span class="alert-key">Severity</span><span class="alert-val" style="color:var(--crimson)">Critical</span></div>
+            <div class="alert-row"><span class="alert-key">ETA</span><span class="alert-val">8 minutes</span></div>
+            <div class="alert-row"><span class="alert-key">Status</span><span class="alert-val" style="color:var(--green)">Preparing Bay</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  Sanjeevni &mdash; Hospital Admin Portal &mdash; Team Sudarshan &mdash; Hackathon 2025
+</footer>
+
+<script>
+  const API = 'http://localhost:3000/api';
+  
+  // theme support
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('sanjeevni_theme', theme);
+    updateThemeIcon(theme);
+  }
+  function updateThemeIcon(theme) {
+    const icon = document.getElementById('theme-icon');
+    if (!icon) return;
+    if (theme === 'light') {
+      icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    } else {
+      icon.innerHTML = '<path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 17a7 7 0 009-4.21z"/>';
+    }
+  }
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  }
+  window.addEventListener('load', () => {
+    const stored = localStorage.getItem('sanjeevni_theme');
+    if (stored) applyTheme(stored);
+    else applyTheme('dark');
+  });
+
+  let currentLoad = 'Low';
+  let selectedHospitalId = null;
+
+  // Session check
+  window.addEventListener('load', () => {
+    const role = localStorage.getItem('sanjeevni_role');
+    const name = localStorage.getItem('sanjeevni_name');
+    if (role && role !== 'hospital') {
+      // Allow anyway for demo purposes
+    }
+    updateAllBedColors();
+  });
+
+  function signOut() { localStorage.clear(); window.location.href = 'login.html'; }
+
+  function loadHospital() {
+    const sel = document.getElementById('hospital-select');
+    selectedHospitalId = sel.value;
+    const name = sel.options[sel.selectedIndex]?.text || 'Hospital';
+    document.getElementById('hospital-name-header').textContent = name;
+    document.getElementById('pv-name').textContent = name;
+    if (selectedHospitalId) showToast(`Loaded: ${name}`, 'ok');
+  }
+
+  function selectLoad(el) {
+    document.querySelectorAll('.load-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentLoad = el.dataset.load;
+    updatePreview();
+  }
+
+  function updateToggleStyle(itemId, checkbox) {
+    const item = document.getElementById(itemId);
+    if (checkbox.checked) item.classList.add('on');
+    else item.classList.remove('on');
+  }
+
+  function updateBedColor(input) {
+    const val = parseInt(input.value) || 0;
+    input.classList.remove('low', 'medium', 'high');
+    if (val < 5)       input.classList.add('low');
+    else if (val < 11) input.classList.add('medium');
+    else               input.classList.add('high');
+  }
+
+  function updateAllBedColors() {
+    ['general-beds', 'icu-beds', 'ventilators'].forEach(id => {
+      updateBedColor(document.getElementById(id));
+    });
+  }
+
+  function updatePreview() {
+    const icu  = document.getElementById('icu-beds').value   || '0';
+    const gen  = document.getElementById('general-beds').value || '0';
+    const vent = document.getElementById('ventilators').value  || '0';
+
+    document.getElementById('pv-icu').textContent  = icu;
+    document.getElementById('pv-gen').textContent  = gen;
+    document.getElementById('pv-vent').textContent = vent;
+
+    const loadEl = document.getElementById('pv-load');
+    loadEl.textContent = currentLoad;
+    loadEl.style.color = currentLoad === 'Low' ? 'var(--green)' : currentLoad === 'Moderate' ? 'var(--amber)' : 'var(--crimson)';
+
+    // Tags
+    const tags = [];
+    if (document.getElementById('blood-bank').checked)  tags.push({ label: 'Blood Bank', cls: '' });
+    if (document.getElementById('ot-free').checked)     tags.push({ label: 'OT Available', cls: '' });
+    if (document.getElementById('ambulance').checked)   tags.push({ label: 'Ambulance', cls: '' });
+    if (document.getElementById('always-open').checked) tags.push({ label: '24/7 Emergency', cls: '' });
+
+    const loadTagCls = currentLoad === 'Low' ? 'ptag-green' : currentLoad === 'Moderate' ? 'ptag-amber' : 'ptag-red';
+    tags.push({ label: `${currentLoad} Load`, cls: loadTagCls });
+
+    document.getElementById('pv-tags').innerHTML = tags.map(t => `<span class="ptag ${t.cls}">${t.label}</span>`).join('');
+  }
+
+  async function saveStatus() {
+    const hospitalId = selectedHospitalId;
+    if (!hospitalId) { showToast('Please select a hospital first.', 'err'); return; }
+
+    const password    = document.getElementById('admin-password').value.trim();
+    const generalBeds = parseInt(document.getElementById('general-beds').value) || 0;
+    const icuBeds     = parseInt(document.getElementById('icu-beds').value) || 0;
+    const ventilators = parseInt(document.getElementById('ventilators').value) || 0;
+
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/></svg> Saving...`;
+
+    const payload = {
+      password,
+      status: {
+        generalBeds, icuBeds, ventilators,
+        currentLoad,
+        bloodBankAvail:      document.getElementById('blood-bank').checked,
+        operationTheaterFree: document.getElementById('ot-free').checked,
+        ambulanceAvail:      document.getElementById('ambulance').checked
+      }
+    };
+
+    try {
+      const res = await fetch(`${API}/admin/hospital/${hospitalId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(5000)
+      });
+      if (res.ok) {
+        showToast('Status updated successfully.', 'ok');
+      } else if (res.status === 401) {
+        showToast('Incorrect password.', 'err');
+      } else {
+        showToast('Saved in demo mode.', 'inf');
+      }
+    } catch {
+      showToast('Saved in demo mode — server offline.', 'inf');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Status`;
+  }
+
+  function simulateAlert() {
+    const popup = document.getElementById('alert-popup');
+    popup.classList.toggle('show');
+    if (popup.classList.contains('show')) {
+      showToast('Simulated incoming patient alert.', 'inf');
+    }
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.className = `toast show ${type}`;
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), 3200);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In — Sanjeevni Emergency Response</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --crimson: #C8102E;
+      --crimson-dark: #a00d24;
+      --crimson-dim: rgba(200,16,46,0.08);
+      --crimson-line: rgba(200,16,46,0.28);
+      --bg: #06070C;
+      --panel: #0E1018;
+      --panel2: #13161F;
+      --panel3: #191D28;
+      --stroke: rgba(255,255,255,0.06);
+      --stroke2: rgba(255,255,255,0.11);
+      --text: #E6E9F4;
+      --text2: #7C8099;
+      --text3: #454A60;
+      --green: #0EA472;
+      --green-dim: rgba(14,164,114,0.08);
+      --green-line: rgba(14,164,114,0.25);
+    }
+    /* light theme overrides */
+    [data-theme="light"] {
+      --bg: #F4F5F8;
+      --panel: #FFFFFF;
+      --panel2: #F0F1F5;
+      --panel3: #E8E9EF;
+      --text: #0D0F1A;
+      --text2: #4A4F66;
+      --text3: #9A9FB5;
+      --stroke: rgba(0,0,0,0.08);
+      --stroke2: rgba(0,0,0,0.13);
+    }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .ambient {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(200,16,46,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 30% at 0% 100%, rgba(200,16,46,0.03) 0%, transparent 60%);
+    }
+    .theme-toggle {
+      position: fixed; top: 16px; right: 16px; z-index: 1000;
+      padding: 6px; border: 1px solid var(--stroke2); border-radius: 6px;
+      background: var(--panel2); color: var(--text2); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .theme-toggle:hover { color: var(--text); }
+    .theme-toggle svg { width: 18px; height: 18px; }
+
+
+    /* ── Layout ── */
+    .page {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── Left Panel ── */
+    .left-panel {
+      background: var(--panel);
+      border-right: 1px solid var(--stroke);
+      padding: 52px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 320px; height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200,16,46,0.05), transparent 70%);
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 11px;
+      text-decoration: none; margin-bottom: 72px;
+    }
+    .brand-mark {
+      width: 34px; height: 34px;
+      border: 1px solid var(--crimson-line);
+      border-radius: 7px;
+      background: var(--crimson-dim);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .brand-mark svg { width: 16px; height: 16px; color: var(--crimson); }
+    .brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 19px; color: var(--text);
+    }
+    .brand-name em { font-style: italic; color: var(--crimson); }
+
+    .lp-tag {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--crimson-dim);
+      border: 1px solid var(--crimson-line);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 1.6px; text-transform: uppercase;
+      color: var(--crimson);
+      margin-bottom: 24px;
+    }
+    .lp-tag-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--crimson);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .lp-heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(28px, 2.6vw, 40px);
+      line-height: 1.13;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .lp-heading em { font-style: italic; color: var(--crimson); }
+    .lp-sub {
+      font-size: 14px; color: var(--text2);
+      line-height: 1.75; max-width: 340px;
+      margin-bottom: 52px;
+    }
+
+    .feature-list { display: flex; flex-direction: column; gap: 18px; }
+    .feature-item { display: flex; align-items: flex-start; gap: 14px; }
+    .feat-icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      border-radius: 6px;
+      background: var(--crimson-dim);
+      border: 1px solid var(--crimson-line);
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+    .feat-icon svg { width: 14px; height: 14px; color: var(--crimson); }
+    .feat-text strong {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--text); margin-bottom: 3px;
+    }
+    .feat-text span { font-size: 12px; color: var(--text3); line-height: 1.55; }
+
+    .lp-footer {
+      margin-top: auto; padding-top: 40px;
+      font-size: 11px; color: var(--text3); letter-spacing: 0.3px;
+    }
+
+    /* ── Right Panel ── */
+    .right-panel {
+      padding: 52px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .form-wrap { width: 100%; max-width: 400px; }
+
+    .form-header { margin-bottom: 32px; }
+    .form-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 25px; color: var(--text); margin-bottom: 7px;
+    }
+    .form-sub { font-size: 13px; color: var(--text2); }
+    .form-sub a { color: var(--crimson); text-decoration: none; font-weight: 500; }
+    .form-sub a:hover { text-decoration: underline; }
+
+    /* Role tabs */
+    .section-label {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 1.8px; text-transform: uppercase;
+      color: var(--text3); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--stroke);
+    }
+
+    .role-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 26px;
+    }
+    .role-btn {
+      padding: 14px 12px;
+      border-radius: 7px;
+      border: 1px solid var(--stroke);
+      background: var(--panel2);
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .role-btn:hover { border-color: var(--stroke2); }
+    .role-btn.active {
+      border-color: var(--crimson-line);
+      background: var(--crimson-dim);
+    }
+    .role-icon svg { width: 18px; height: 18px; color: var(--text3); transition: color 0.15s; display: block; }
+    .role-btn.active .role-icon svg { color: var(--crimson); }
+    .role-label {
+      font-size: 12px; font-weight: 500;
+      color: var(--text2); transition: color 0.15s;
+    }
+    .role-btn.active .role-label { color: var(--text); }
+
+    /* Fields */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 10px; font-weight: 600;
+      letter-spacing: 1.6px; text-transform: uppercase;
+      color: var(--text3); margin-bottom: 7px;
+    }
+    .field input {
+      width: 100%; padding: 11px 14px;
+      background: var(--panel2);
+      border: 1px solid var(--stroke);
+      border-radius: 6px; color: var(--text);
+      font-family: 'Outfit', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.15s;
+      display: block;
+    }
+    .field input:focus { border-color: rgba(200,16,46,0.35); }
+    .field input::placeholder { color: var(--text3); }
+    .field-hint { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+    /* Options row */
+    .form-options {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px; gap: 12px;
+    }
+    .checkbox-row {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13px; color: var(--text2); cursor: pointer;
+      flex-shrink: 0;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 14px; height: 14px;
+      accent-color: var(--crimson); cursor: pointer;
+      flex-shrink: 0;
+    }
+    .forgot-link {
+      font-size: 12px; color: var(--crimson);
+      text-decoration: none; font-weight: 500;
+      white-space: nowrap;
+    }
+    .forgot-link:hover { text-decoration: underline; }
+
+    /* Error */
+    .error-msg {
+      background: var(--crimson-dim);
+      border: 1px solid var(--crimson-line);
+      border-radius: 6px; padding: 10px 13px;
+      font-size: 12px; color: var(--crimson);
+      margin-bottom: 14px; display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%; padding: 13px 16px;
+      border-radius: 6px; border: none;
+      background: var(--crimson); color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600; font-size: 14px;
+      letter-spacing: 0.2px; cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .btn-primary:hover { background: var(--crimson-dark); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 16px 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--stroke);
+    }
+    .divider span { font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+    .btn-ghost {
+      width: 100%; padding: 11px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--stroke2);
+      background: transparent; color: var(--text2);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 500; font-size: 13px;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .btn-ghost svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* Demo credentials */
+    .demo-box {
+      margin-top: 20px; padding: 14px 16px;
+      background: var(--green-dim);
+      border: 1px solid var(--green-line);
+      border-radius: 7px;
+    }
+    .demo-title {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--green); margin-bottom: 10px;
+    }
+    .demo-row {
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      align-items: center; gap: 8px;
+      margin-bottom: 7px;
+    }
+    .demo-row:last-child { margin-bottom: 0; }
+    .demo-role { font-size: 12px; color: var(--text2); font-weight: 500; }
+    .demo-cred { font-size: 11px; color: var(--text3); font-family: monospace; }
+    .demo-fill {
+      font-size: 11px; color: var(--green);
+      cursor: pointer; font-weight: 600;
+      background: none; border: none;
+      font-family: 'Outfit', sans-serif;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--green-line);
+      transition: background 0.15s; cursor: pointer;
+    }
+    .demo-fill:hover { background: var(--green-dim); }
+
+    /* SOS strip */
+    .sos-strip {
+      margin-top: 20px; padding: 13px 16px;
+      background: rgba(200,16,46,0.05);
+      border: 1px solid var(--crimson-line);
+      border-radius: 7px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .sos-icon { flex-shrink: 0; }
+    .sos-icon svg { width: 20px; height: 20px; color: var(--crimson); display: block; }
+    .sos-text { flex: 1; }
+    .sos-text strong {
+      display: block; font-size: 13px;
+      font-weight: 600; color: var(--text); margin-bottom: 2px;
+    }
+    .sos-text span { font-size: 11px; color: var(--text3); }
+    .sos-btn {
+      flex-shrink: 0;
+      padding: 8px 14px; border-radius: 5px;
+      border: 1px solid var(--crimson-line);
+      background: var(--crimson-dim);
+      color: var(--crimson);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700; font-size: 12px;
+      letter-spacing: 0.5px;
+      cursor: pointer; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .sos-btn:hover { background: var(--crimson); color: #fff; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      background: var(--panel);
+      border: 1px solid var(--stroke2);
+      border-radius: 7px; padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: var(--text);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+      transform: translateY(64px); opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+      max-width: 280px; pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-bar { width: 3px; border-radius: 2px; align-self: stretch; flex-shrink: 0; }
+    .toast.ok .toast-bar { background: var(--green); }
+    .toast.ok { border-color: var(--green-line); }
+    .toast.err .toast-bar { background: var(--crimson); }
+    .toast.err { border-color: var(--crimson-line); }
+
+    /* Mobile */
+    @media (max-width: 860px) {
+      .page { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { padding: 36px 24px; min-height: 100vh; justify-content: flex-start; padding-top: 48px; }
+    }
+    @media (max-width: 400px) {
+      .form-options { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+<div class="ambient"></div>
+<button id="theme-toggle" class="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
+  <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
+</button>
+<div class="toast" id="toast"><div class="toast-bar"></div><span id="toast-msg"></span></div>
+
+<div class="page">
+
+  <!-- Left branding panel -->
+  <div class="left-panel">
+    <div>
+      <a class="brand" href="index.html">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M2 12h20"/></svg>
+        </div>
+        <div class="brand-name">San<em>jeevni</em></div>
+      </a>
+
+      <div class="lp-tag"><div class="lp-tag-dot"></div>Emergency Response Platform</div>
+
+      <div class="lp-heading">Every second of<br/>the <em>golden hour</em><br/>matters.</div>
+      <div class="lp-sub">
+        A clinical emergency response system that connects patients to the most prepared hospital based on real-time readiness — not just proximity.
+      </div>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="feat-text">
+            <strong>Clinical Readiness Scoring</strong>
+            <span>Hospitals ranked by ICU availability, OT status, bed count, and emergency preparedness.</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.64 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.55 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.29 6.29l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <div class="feat-text">
+            <strong>Pre-Arrival Hospital Notification</strong>
+            <span>Hospital receives emergency type, severity, and patient ETA before the patient arrives.</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="feat-text">
+            <strong>Patient Medical Profile</strong>
+            <span>Blood group, allergies, and conditions sent to the hospital before patient arrival.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="lp-footer">Sanjeevni &mdash; Team Sudarshan &mdash; Hackathon 2025</div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="right-panel">
+    <div class="form-wrap">
+
+      <div class="form-header">
+        <div class="form-title">Sign in to Sanjeevni</div>
+        <div class="form-sub">New user? <a href="register.html">Create a patient account</a></div>
+      </div>
+
+      <div class="section-label">Sign in as</div>
+      <div class="role-grid" id="role-grid">
+        <div class="role-btn active" data-role="patient" onclick="selectRole(this)">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="role-label">Patient</div>
+        </div>
+        <div class="role-btn" data-role="hospital" onclick="selectRole(this)">
+          <div class="role-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="role-label">Hospital</div>
+        </div>
+      </div>
+
+      <div class="error-msg" id="error-msg"></div>
+
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password"/>
+        <div class="field-hint" id="role-hint">Patient account — access your medical profile and emergency history.</div>
+      </div>
+
+      <div class="form-options">
+        <label class="checkbox-row">
+          <input type="checkbox" id="remember" checked/> Remember me
+        </label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <div class="error-msg" id="error-msg2"></div>
+
+      <button class="btn-primary" id="login-btn" onclick="handleLogin()">Sign In</button>
+
+      <div class="divider"><span>or</span></div>
+
+      <button class="btn-ghost" onclick="guestSearch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search hospitals without an account
+      </button>
+
+      <!-- Demo credentials for judges -->
+      <div class="demo-box">
+        <div class="demo-title">Demo Credentials</div>
+        <div class="demo-row">
+          <span class="demo-role">Patient</span>
+          <span class="demo-cred">patient@demo.com / demo123</span>
+          <button class="demo-fill" onclick="fillDemo('patient')">Fill</button>
+        </div>
+        <div class="demo-row">
+          <span class="demo-role">Hospital</span>
+          <span class="demo-cred">hospital@demo.com / demo123</span>
+          <button class="demo-fill" onclick="fillDemo('hospital')">Fill</button>
+        </div>
+      </div>
+
+      <div class="sos-strip">
+        <div class="sos-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="sos-text">
+          <strong>Emergency in progress?</strong>
+          <span>Skip login and go directly to hospital search.</span>
+        </div>
+        <button class="sos-btn" onclick="guestSearch()">SOS</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─────────────────────────────────────────────────────────────
+  // LOGIN LOGIC
+  //
+  // This page works in two modes:
+  //
+  // 1. DEMO MODE (default, no backend needed)
+  //    Any email + password combination works.
+  //    Patient → redirects to index.html
+  //    Hospital → redirects to hospital-admin.html
+  //
+  // 2. BACKEND MODE (when server is running at localhost:3000)
+  //    Tries POST /api/auth/login first.
+  //    If backend is offline, falls back to demo mode automatically.
+  //
+  // This means the demo ALWAYS works regardless of server status.
+  // ─────────────────────────────────────────────────────────────
+
+  const API_BASE = 'http://localhost:3000/api';
+
+  // theme support
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('sanjeevni_theme', theme);
+    updateThemeIcon(theme);
+  }
+  function updateThemeIcon(theme) {
+    const icon = document.getElementById('theme-icon');
+    if (!icon) return;
+    if (theme === 'light') {
+      icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    } else {
+      icon.innerHTML = '<path d="M21 12.79A9 9 0 0111.21 3 7 7 0 0012 17a7 7 0 009-4.21z"/>';
+    }
+  }
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  }
+  window.addEventListener('load', () => {
+    const stored = localStorage.getItem('sanjeevni_theme');
+    if (stored) applyTheme(stored);
+    else applyTheme('dark');
+  });
+
+  let selectedRole = 'patient';
+
+  const roleConfig = {
+    patient: {
+      hint: 'Patient account — access your medical profile and past emergency records.',
+      redirect: 'index.html'
+    },
+    hospital: {
+      hint: 'Hospital admin — manage live bed availability, ICU status and readiness.',
+      redirect: 'hospital-admin.html'
+    }
+  };
+
+  const demoCreds = {
+    patient:  { email: 'patient@demo.com',  password: 'demo123' },
+    hospital: { email: 'hospital@demo.com', password: 'demo123' }
+  };
+
+  function selectRole(el) {
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedRole = el.dataset.role;
+    document.getElementById('role-hint').textContent = roleConfig[selectedRole].hint;
+    clearError();
+  }
+
+  function fillDemo(role) {
+    const roleBtn = document.querySelector(`[data-role="${role}"]`);
+    if (roleBtn) selectRole(roleBtn);
+    document.getElementById('email').value    = demoCreds[role].email;
+    document.getElementById('password').value = demoCreds[role].password;
+    clearError();
+    showToast('Credentials filled — click Sign In', 'ok');
+  }
+
+  function guestSearch() {
+    localStorage.setItem('sanjeevni_role', 'guest');
+    window.location.href = 'index.html';
+  }
+
+  async function handleLogin() {
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const btn      = document.getElementById('login-btn');
+
+    clearError();
+
+    // Validate inputs
+    if (!email) { showError('Please enter your email address.'); return; }
+    if (!password) { showError('Please enter your password.'); return; }
+    if (!/\S+@\S+\.\S+/.test(email)) { showError('Please enter a valid email address.'); return; }
+    if (password.length < 4) { showError('Password must be at least 4 characters.'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    // Try backend first (3 second timeout)
+    let backendAvailable = false;
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role: selectedRole }),
+        signal: AbortSignal.timeout(3000)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          saveSession(email, data.token || 'backend-token');
+          showToast('Signed in successfully', 'ok');
+          setTimeout(() => { window.location.href = roleConfig[selectedRole].redirect; }, 700);
+          return;
+        } else {
+          // Backend is available but rejected credentials
+          backendAvailable = true;
+          showError('Invalid credentials. Please check your email and password.');
+          resetBtn();
+          return;
+        }
+      }
+    } catch (e) {
+      // Backend offline — fall through to demo mode
+    }
+
+    // Demo mode — accept any valid email + password
+    if (!backendAvailable) {
+      saveSession(email, 'demo-token');
+      showToast('Signed in (demo mode)', 'ok');
+      setTimeout(() => { window.location.href = roleConfig[selectedRole].redirect; }, 700);
+    }
+  }
+
+  function saveSession(email, token) {
+    localStorage.setItem('sanjeevni_token', token);
+    localStorage.setItem('sanjeevni_role',  selectedRole);
+    localStorage.setItem('sanjeevni_email', email);
+    localStorage.setItem('sanjeevni_name',  email.split('@')[0]);
+  }
+
+  function showError(msg) {
+    const e = document.getElementById('error-msg');
+    e.textContent = msg;
+    e.classList.add('show');
+    resetBtn();
+  }
+
+  function clearError() {
+    document.getElementById('error-msg').classList.remove('show');
+  }
+
+  function resetBtn() {
+    const btn = document.getElementById('login-btn');
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.className = `toast show ${type}`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Enter key to submit
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.activeElement.tagName === 'INPUT') {
+      handleLogin();
+    }
+  });
+
+  // Check if already logged in
+  window.addEventListener('load', () => {
+    const token = localStorage.getItem('sanjeevni_token');
+    const role  = localStorage.getItem('sanjeevni_role');
+    if (token && role && role !== 'guest') {
+      // Already logged in — redirect silently
+      window.location.href = roleConfig[role]?.redirect || 'index.html';
+    }
+  });
+
+  // no extra JS needed for sos, click handled inline
+
+</script>
+</body>
+</html>
